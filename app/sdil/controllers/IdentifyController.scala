@@ -35,7 +35,8 @@ class IdentifyController(val messagesApi: MessagesApi, cache: SessionCache, auth
   import IdentifyController.form
 
   def identify = authorisedAction.async { implicit request =>
-    cache.fetchAndGetEntry[EmailVerification]("email") map {
+    val token = request.session.get("verificationToken").getOrElse("")
+    cache.fetchAndGetEntry[EmailVerification](cache.defaultSource, token, "email") map {
       case Some(ev) if ev.isVerified => Ok(views.html.softdrinksindustrylevy.register.identify(form))
       case _ => Redirect(routes.EmailController.verificationRequired())
     }

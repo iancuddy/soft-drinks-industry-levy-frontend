@@ -16,6 +16,8 @@
 
 package sdil.controllers
 
+import java.util.UUID
+
 import play.api.data.Forms._
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, MessagesApi}
@@ -45,13 +47,16 @@ class EmailController(val messagesApi: MessagesApi,
   def validate = authorisedAction.async { implicit request =>
     emailForm.bindFromRequest().fold(
       errors => BadRequest(register.email.email(errors)),
-      email => for {
-        _ <- cache.cache("email", EmailVerification(email, isVerified = false))
-        verification <- emailVerificationConnector.sendVerificationEmail(email, routes.EmailController.verified())
-      } yield {
-        verification match {
-          case VerificationResult.EmailSent => Redirect(routes.EmailController.verify)
-          case VerificationResult.EmailVerified => Redirect(routes.EmailController.verified())
+      email => {
+        val token = UUID.randomUUID().toString
+        for {
+          _ <- cache.cache(cache.defaultSource, token, "email", EmailVerification(email, isVerified = false))
+          verification <- emailVerificationConnector.sendVerificationEmail(email, routes.EmailController.verified(token))
+        } yield {
+          verification match {
+            case VerificationResult.EmailSent => Redirect(routes.EmailController.verify)
+            case VerificationResult.EmailVerified => Redirect(routes.EmailController.verified(token))
+          }
         }
       }
     )
@@ -61,12 +66,15 @@ class EmailController(val messagesApi: MessagesApi,
     Ok(register.email.verification_required())
   }
 
-  def verified = authorisedAction.async { implicit request =>
-    cache.fetchAndGetEntry[EmailVerification]("email") flatMap {
-      case Some(ve) => cache.cache("email", ve.copy(isVerified = true)) map { _ =>
-        Ok(register.email.email_verified())
+  def verified(token: String) = authorisedAction.async { implicit request =>
+    cache.fetchAndGetEntry[EmailVerification](cache.defaultSource, token, "email") flatMap {
+      case Some(ve) if !ve.isVerified => for {
+        _ <- cache.cache(cache.defaultSource, token, "email", ve.copy(isVerified = true))
+      } yield {
+        Ok(register.email.email_verified()).addingToSession("verificationToken" -> token)
       }
-      case None => NotFound
+      case Some(_) => Forbidden("Email already verified")
+      case _ => NotFound
     }
   }
 

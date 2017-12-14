@@ -7,7 +7,7 @@ GET         /register/email                                  sdil.controllers.Em
 GET         /register/verified-email                         sdil.controllers.EmailController.verificationRequired
 POST        /register/email                                  sdil.controllers.EmailController.validate
 GET         /register/email/verify                           sdil.controllers.EmailController.verify
-GET         /register/email/verified                         sdil.controllers.EmailController.verified
+GET         /register/email/verified/:token                  sdil.controllers.EmailController.verified(token)
 
 GET         /register/identify                               sdil.controllers.IdentifyController.identify()
 POST        /register/identify                               sdil.controllers.IdentifyController.validate()
