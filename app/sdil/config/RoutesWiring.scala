@@ -21,7 +21,7 @@ import com.softwaremill.macwire.wire
 import controllers.Assets
 import play.api.inject.DefaultApplicationLifecycle
 import sdil.actions.{AuthorisedAction, FormAction}
-import sdil.connectors.SoftDrinksIndustryLevyConnector
+import sdil.connectors.{EmailVerificationConnector, SoftDrinksIndustryLevyConnector}
 import sdil.controllers._
 import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.http.cache.client.SessionCache
@@ -34,11 +34,13 @@ trait RoutesWiring extends CommonWiring {
   val authConnector: AuthConnector
   val cache: SessionCache
   val sdilConnector: SoftDrinksIndustryLevyConnector
+  val emailVerificationConnector: EmailVerificationConnector
 
   lazy val authorisedAction: AuthorisedAction = wire[AuthorisedAction]
   lazy val formAction: FormAction = wire[FormAction]
   lazy val assets: Assets = wire[Assets]
   lazy val sdilController: SDILController = wire[SDILController]
+  lazy val emailController: EmailController = wire[EmailController]
   lazy val identifyController: IdentifyController = wire[IdentifyController]
   lazy val verifyController: VerifyController = wire[VerifyController]
   lazy val litreageController: LitreageController = wire[LitreageController]

@@ -17,7 +17,7 @@
 package sdil.config
 
 import com.softwaremill.macwire.wire
-import sdil.connectors.SoftDrinksIndustryLevyConnector
+import sdil.connectors.{EmailVerificationConnector, SoftDrinksIndustryLevyConnector}
 import uk.gov.hmrc.auth.core.AuthConnector
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 import uk.gov.hmrc.play.bootstrap.audit.DefaultAuditConnector
@@ -29,4 +29,5 @@ trait ConnectorWiring extends CommonWiring {
   lazy val httpClient: HttpClient = wire[DefaultHttpClient]
   lazy val authConnector: AuthConnector = wire[DefaultAuthConnector]
   lazy val sdilConnector: SoftDrinksIndustryLevyConnector = wire[SoftDrinksIndustryLevyConnector]
+  lazy val emailVerificationConnector: EmailVerificationConnector = wire[EmailVerificationConnector]
 }

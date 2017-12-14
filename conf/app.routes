@@ -3,6 +3,11 @@ GET         /assets/*file                                    controllers.Assets.
 
 GET         /auth-test                                       sdil.controllers.SDILController.testAuth
 
+GET         /register/email                                  sdil.controllers.EmailController.show
+POST        /register/email                                  sdil.controllers.EmailController.validate
+GET         /register/email/verify                           sdil.controllers.EmailController.verify
+GET         /register/email/verified                         sdil.controllers.EmailController.verified
+
 GET         /register/identify                               sdil.controllers.IdentifyController.identify()
 POST        /register/identify                               sdil.controllers.IdentifyController.validate()
 

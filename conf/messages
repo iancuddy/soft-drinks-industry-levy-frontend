@@ -21,6 +21,12 @@ error.utr.required=Enter a valid UTR
 error.utr.length=UTR must be 10 digits long
 error.utr.invalid=UTR must only contain digits
 
+#Email verification
+sdil.email.heading=Enter an email address
+sdil.email-verification.heading=You need to verify your email address
+sdil.email-verification.check-inbox=A verification email has been sent to your inbox
+sdil.email-verified.title=Your email has been verified
+
 #Identify
 sdil.identify.heading=Enter your Unique Tax Reference number and postcode
 sdil.identify.utr=Unique Tax Reference number (UTR)
