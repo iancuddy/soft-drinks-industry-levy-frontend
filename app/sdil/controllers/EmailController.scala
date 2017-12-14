@@ -19,15 +19,18 @@ package sdil.controllers
 import play.api.data.Forms._
 import play.api.data.Form
 import play.api.i18n.{I18nSupport, MessagesApi}
+import play.api.libs.json.{Format, Json}
 import sdil.actions.AuthorisedAction
 import sdil.config.AppConfig
 import sdil.connectors.{EmailVerificationConnector, VerificationResult}
+import uk.gov.hmrc.http.cache.client.SessionCache
 import uk.gov.hmrc.play.bootstrap.controller.FrontendController
 import views.html.softdrinksindustrylevy.register
 
 class EmailController(val messagesApi: MessagesApi,
                       authorisedAction: AuthorisedAction,
-                      emailVerificationConnector: EmailVerificationConnector)
+                      emailVerificationConnector: EmailVerificationConnector,
+                      cache: SessionCache)
                      (implicit config: AppConfig)
   extends FrontendController with I18nSupport {
 
@@ -35,12 +38,21 @@ class EmailController(val messagesApi: MessagesApi,
     Ok(register.email.email(emailForm))
   }
 
+  def verificationRequired = authorisedAction { implicit request =>
+    Ok(register.email.email(emailForm.withError("email", "error.email.verification-required")))
+  }
+
   def validate = authorisedAction.async { implicit request =>
     emailForm.bindFromRequest().fold(
       errors => BadRequest(register.email.email(errors)),
-      email => emailVerificationConnector.sendVerificationEmail(email, routes.EmailController.verified) map {
-        case VerificationResult.EmailSent => Redirect(routes.EmailController.verify)
-        case VerificationResult.EmailVerified => Redirect(routes.EmailController.verified)
+      email => for {
+        _ <- cache.cache("email", EmailVerification(email, isVerified = false))
+        verification <- emailVerificationConnector.sendVerificationEmail(email, routes.EmailController.verified())
+      } yield {
+        verification match {
+          case VerificationResult.EmailSent => Redirect(routes.EmailController.verify)
+          case VerificationResult.EmailVerified => Redirect(routes.EmailController.verified())
+        }
       }
     )
   }
@@ -49,9 +61,20 @@ class EmailController(val messagesApi: MessagesApi,
     Ok(register.email.verification_required())
   }
 
-  def verified = authorisedAction { implicit request =>
-    Ok(register.email.email_verified())
+  def verified = authorisedAction.async { implicit request =>
+    cache.fetchAndGetEntry[EmailVerification]("email") flatMap {
+      case Some(ve) => cache.cache("email", ve.copy(isVerified = true)) map { _ =>
+        Ok(register.email.email_verified())
+      }
+      case None => NotFound
+    }
   }
 
   lazy val emailForm = Form(single("email" -> email))
+}
+
+case class EmailVerification(email: String, isVerified: Boolean)
+
+object EmailVerification {
+  implicit val format: Format[EmailVerification] = Json.format[EmailVerification]
 }

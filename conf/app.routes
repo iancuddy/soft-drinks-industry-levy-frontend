@@ -4,6 +4,7 @@ GET         /assets/*file                                    controllers.Assets.
 GET         /auth-test                                       sdil.controllers.SDILController.testAuth
 
 GET         /register/email                                  sdil.controllers.EmailController.show
+GET         /register/verified-email                         sdil.controllers.EmailController.verificationRequired
 POST        /register/email                                  sdil.controllers.EmailController.validate
 GET         /register/email/verify                           sdil.controllers.EmailController.verify
 GET         /register/email/verified                         sdil.controllers.EmailController.verified
