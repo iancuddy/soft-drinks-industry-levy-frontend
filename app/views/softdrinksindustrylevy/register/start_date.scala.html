@@ -34,16 +34,16 @@
 
             <div class="form-group">
 
-                <fieldset class="form-group form-date @if(startDateForm.hasErrors) {form-field--error}" id="start-date-fieldset">
+                <fieldset class="form-group form-date @if(startDateForm.hasErrors) {form-group-error}" id="start-date-fieldset">
 
                     <legend class="visuallyhidden">@Messages("sdil.start-date.heading")</legend>
 
-                    @startDateForm.errors.map { error => <span class="error-notification">@Messages(error.message, error.args: _*)</span> }
+                    @startDateForm.errors.map { error => <span class="error-message">@Messages(error.message, error.args: _*)</span> }
 
                     <label for="startDate.day" class="form-group form-group-day">
                         <span>@Messages("sdil.start-date.day")</span>
 
-                        <input type="number" class="input--xxsmall input--no-spinner form-control @if(startDateForm("startDate.day").hasErrors) {error-field}"
+                        <input type="number" class="input--xxsmall input--no-spinner form-control @if(startDateForm("startDate.day").hasErrors) {form-control-error}"
                         name="startDate.day" id="startDate.day" value="@startDateForm("startDate.day").value">
 
                     </label>
@@ -52,14 +52,14 @@
 
                         <span>@Messages("sdil.start-date.month")</span>
 
-                        <input type="number" class="input--xxsmall input--no-spinner form-control @if(startDateForm("startDate.month").hasErrors) {error-field}"
+                        <input type="number" class="input--xxsmall input--no-spinner form-control @if(startDateForm("startDate.month").hasErrors) {form-control-error}"
                         name="startDate.month" id="startDate.month" value="@startDateForm("startDate.month").value">
                     </label>
 
                     <label for="startDate.year" class="form-group form-group-year">
                         <span>@Messages("sdil.start-date.year")</span>
 
-                        <input type="number" class="input--small input--no-spinner form-control @if(startDateForm("startDate.year").hasErrors) {error-field}"
+                        <input type="number" class="input--small input--no-spinner form-control @if(startDateForm("startDate.year").hasErrors) {form-control-error}"
                         name="startDate.year" id="startDate.year" value="@startDateForm("startDate.year").value">
                     </label>
                 </fieldset>

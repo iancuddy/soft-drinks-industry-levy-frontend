@@ -14,12 +14,12 @@
  * limitations under the License.
  *@
 
-@(field: Field, label: String, args: (Symbol, String)*)(implicit request: Request[_], messages: Messages)
+@(field: Field, args: (Symbol, String)*)(implicit request: Request[_], messages: Messages)
 
 <div class="form-group form-@field.name @if(field.hasErrors) {form-group-error} @args.toMap.get('_divClass)">
 
     <label for="@field.name">
-        <span class="form-label">@label</span>
+        <span class="form-label">@Messages(s"sdil.${field.name}.label")</span>
         @field.errors.map { error =>
             <span class="error-message" role="tooltip" data-journey="search-page:error:@field.name">
             @Messages(error.message, error.args: _*)

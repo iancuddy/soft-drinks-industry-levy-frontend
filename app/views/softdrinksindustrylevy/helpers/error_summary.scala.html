@@ -16,7 +16,7 @@
 
 @import sdil.config.AppConfig
 
-@(form: Form[_])(implicit request: Request[_], messages: Messages, config: AppConfig)
+@(form: Form[_], labelPrefix: Option[String] = None)(implicit request: Request[_], messages: Messages, config: AppConfig)
 
 @* the play-ui version uses the wrong classes *@
 @if(form.hasErrors) {
@@ -32,7 +32,7 @@
                     <a href="#@error.key"
                     id="@{error.key}-error-summary"
                     data-focuses="@error.key">
-                    @Messages(error.message, error.args: _*)
+                    @Messages(s"sdil.${labelPrefix.fold("")(l => s"$l.")}${error.key}.label") - @Messages(error.message, error.args: _*)
                     </a>
                 </li>
             }

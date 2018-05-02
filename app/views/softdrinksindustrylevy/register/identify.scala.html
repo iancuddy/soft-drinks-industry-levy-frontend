@@ -27,9 +27,9 @@
 
     @form(sdil.controllers.routes.IdentifyController.submit()) {
 
-        @inputText(identifyForm("utr"), Messages("sdil.identify.utr"))
+        @inputText(identifyForm("utr"))
 
-        @inputText(identifyForm("postcode"), Messages("sdil.identify.postcode"), '_inputClass -> "input--cleared caps")
+        @inputText(identifyForm("postcode"), '_inputClass -> "input--cleared caps")
 
         <input class="button" value="@Messages("sdil.common.continue")" type="submit">
     }

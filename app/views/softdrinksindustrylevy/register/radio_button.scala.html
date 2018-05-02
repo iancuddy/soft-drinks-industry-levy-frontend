@@ -25,7 +25,7 @@
 
     <a class="link-back" href="@back.url">@Messages("sdil.common.back")</a>
 
-    @error_summary(radioForm)
+    @error_summary(radioForm, labelPrefix = Some(pageName))
 
     <h1 class="heading-large">@Messages(s"sdil.$pageName.heading")</h1>
 

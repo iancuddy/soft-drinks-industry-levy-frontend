@@ -20,11 +20,11 @@ sdil.common.error=Error
 sdil.common.cancel=Cancel
 
 #Address lines
-sdil.address.line1=Address line 1
-sdil.address.line2=Address line 2
-sdil.address.line3=Address line 3 (optional)
-sdil.address.line4=Address line 4 (optional)
-sdil.address.postcode=Postcode
+sdil.additionalAddress.line1.label=Address line 1
+sdil.additionalAddress.line2.label=Address line 2
+sdil.additionalAddress.line3.label=Address line 3 (optional)
+sdil.additionalAddress.line4.label=Address line 4 (optional)
+sdil.additionalAddress.postcode.label=Postcode
 
 error.utr.required=Enter a UTR
 error.utr.length=UTR must be 10 digits long
@@ -32,12 +32,13 @@ error.utr.invalid=UTR must be a number
 
 #Identify
 sdil.identify.heading=Enter the Unique Taxpayer Reference number and postcode for your business
-sdil.identify.utr=Unique Taxpayer Reference number (UTR)
-sdil.identify.postcode=Postcode
+sdil.utr.label=Unique Taxpayer Reference number (UTR)
+sdil.postcode.label=Postcode
 error.utr.no-record=This UTR and postcode do not match our records
 
 #Verify
 sdil.verify.heading=Is this the business you want to register?
+sdil.detailsCorrect.label=Is this the business you want to register?
 sdil.verify.table.caption=Your business record in HMRC
 sdil.verify.utr=Unique Taxpayer Reference (UTR)
 sdil.verify.organisation=Business name
@@ -47,11 +48,11 @@ sdil.verify.detailsCorrect.differentAddress=Yes, but I want to add a new primary
 sdil.verify.detailsCorrect.no=No, I need to enter a different UTR and postcode
 sdil.verify.address.heading=Enter a primary address for the Soft Drinks Industry Levy
 sdil.verify.address.legend=Enter a primary address for the Soft Drinks Industry Levy
-sdil.verify.address.line1=Address line 1
-sdil.verify.address.line2=Address line 2
-sdil.verify.address.line3=Address line 3
-sdil.verify.address.line4=Address line 4
-sdil.verify.postcode=Postcode
+sdil.alternativeAddress.line1.label=Address line 1
+sdil.alternativeAddress.line2.label=Address line 2
+sdil.alternativeAddress.line3.label=Address line 3
+sdil.alternativeAddress.line4.label=Address line 4
+sdil.alternativeAddress.postcode.label=Postcode
 
 #Registration pending
 sdil.registration-pending.title=You’ve already sent an application
@@ -60,6 +61,7 @@ sdil.registration-pending.p2=We’ll contact you using the information you gave 
 
 #Organisation Type
 sdil.organisation-type.heading=Which of these best describes your business?
+sdil.orgType.label=Which of these best describes your business?
 sdil.organisation-type.limited-company=Limited company
 sdil.organisation-type.llp=Limited liability partnership (LLP)
 sdil.organisation-type.partnership=Partnership
@@ -73,7 +75,10 @@ sdil.partnership.info.p1=You need to call 0300 200 3700 to register.
 #Producer
 sdil.producer.heading=In the past 12 months, have you packaged or had packaged on your behalf, any liable drink for\
    brands you own or have the rights to manufacture, worldwide?
+sdil.isProducer.label=In the past 12 months, have you packaged or had packaged on your behalf, any liable drink for\
+   brands you own or have the rights to manufacture, worldwide?
 sdil.producer.hidden-heading=How many litres worldwide?
+sdil.isLarge.label=How many litres worldwide?
 sdil.producer.over-one-million=1 million litres or more
 sdil.producer.under-one-million=Less than 1 million litres
 sdil.producer.details.title=What does ‘packaged’ mean?
@@ -106,15 +111,13 @@ sdil.package.who-for=Who will you package liable drinks for?
 sdil.who-for.instruction=Select one or both
 sdil.who-for.option1=Our own brand or brands we have the rights to manufacture
 sdil.who-for.option2=Our customers
+sdil.packageOwnUk.yesOrNo.label=Do you operate any packaging sites in the UK to package liable drinks for brands you own or have the rights to manufacture?
 
 error.packaging.none-selected=Choose at least one option
 
 #Copacking page
 sdil.packageCopack.heading=Do you operate any packaging sites in the UK to package liable drinks for your customers as a third party?
-
-#Package copack small page
-error.copack-small.lower-greater-than-total-lower=Litres for small producers must be less than total litres for customers
-error.copack-small.higher-greater-than-total-higher=Litres for small producers must be less than total litres for customers
+sdil.copacked.yesOrNo.label=Do you use any third parties in the UK to package liable drinks on your behalf?
 
 #Litreage pages
 sdil.packageOwnVol.heading=In the next 12 months, how many litres of liable drink do you expect to package for brands \
@@ -128,8 +131,8 @@ sdil.packageCopackSmallVol.heading=In the next year, how many litres of liable d
 sdil.copackedVolume.heading=In the next year, how many litres of liable drink do you expect to have packaged by third \
   parties in the UK?
 sdil.importVolume.heading=In the next 12 months, how many litres of liable drink do you expect to bring into the UK?
-sdil.litreage.lowRate=Litres in the low band
-sdil.litreage.highRate=Litres in the high band
+sdil.lowerRateLitres.label=Litres in the low band
+sdil.higherRateLitres.label=Litres in the high band
 sdil.litreage.rates.help=What are the bands?
 sdil.litreage.rates.content.p1=The low band is from 5 grams to 7.9 grams of sugar per 100 millilitres.
 sdil.litreage.rates.content.p2=The high band is 8 grams of sugar or more per 100 millilitres.
@@ -141,6 +144,9 @@ error.litreage.numeric=Number of litres must be a whole number
 error.litreage.max=Number of litres must be less than 14 digits
 error.litreage.min=Number of litres must be 0 or more
 error.litreage.zero=Number of litres must be 1 or more
+
+sdil.packageCopack.yesOrNo.label=Do you operate any packaging sites in the UK to package liable drinks for your customers as a third party?
+sdil.import.yesOrNo.label=Do you bring liable drinks into the UK from anywhere outside of the UK?
 
 #Production sites
 sdil.productionSite.heading=Tell us about the packaging sites your business operates in the UK to package liable drinks
@@ -154,6 +160,7 @@ sdil.production-site.help.summary=If you have more than one packaging site
 sdil.production-site.help.p1=You need to tell us the addresses of all of the packaging sites you operate in the UK to package liable drinks.
 sdil.production-site.help.p2=If you’ve got more packaging sites you can add them next.
 error.no-production-sites=Choose at least one option
+sdil.productionSites.label=Tell us about the packaging sites your business operates in the UK to package liable drinks
 
 #Secondary warehouse
 sdil.warehouse.heading=Do you want to register any of the UK warehouses you use to store liable drinks?
@@ -166,6 +173,7 @@ sdil.warehouse-site.add.heading=Enter a warehouse site
 sdil.warehouse-site.add.hint=You can enter more sites after if you need to
 sdil.warehouse-site.add.legend=A warehouse site address
 sdil.warehouse-site.add=Add address to list
+sdil.addWarehouse.label=Do you want to register any of the UK warehouses you use to store liable drinks?
 
 #Package Copack Small
 sdil.packageCopackSmall.heading=Do you expect to claim a small producer exemption for any of your customers?
@@ -216,6 +224,10 @@ sdil.start-date.help-li4=knew you were going to package liable drinks for someon
 sdil.start-date.help-li5=brought liable drinks into the UK
 sdil.start-date.help-li6=knew you were going to bring liable drinks into the UK
 
+sdil.startDate.day.label=Day
+sdil.startDate.month.label=Month
+sdil.startDate.year.label=Year
+
 error.day.required=Enter a day
 error.month.required=Enter a month
 error.year.required=Enter a year
@@ -228,10 +240,10 @@ error.date.invalid=Enter a valid date
 
 #Contact details
 sdil.contact-details.heading=Who is your contact for the Soft Drinks Industry Levy?
-sdil.contact-details.full-name=Name
-sdil.contact-details.position=Job title
-sdil.contact-details.phone-number=Telephone number
-sdil.contact-details.email=Email
+sdil.fullName.label=Name
+sdil.position.label=Job title
+sdil.phoneNumber.label=Telephone number
+sdil.email.label=Email
 
 error.fullName.required=Enter a name
 error.fullName.over=Name must not be more than 40 characters
@@ -388,31 +400,20 @@ error.email=Enter a valid email address
 error.radio-form.choose-option=Choose an option
 error.radio-form.choose-one-option=Choose at least one option
 
-# Beta registration
-sdil.register-for-beta.title=Sign up to register early
-sdil.register-for-beta.fullName=Contact name
-sdil.register-for-beta.businessName=Business name
-sdil.register-for-beta.email=Email
-sdil.register-for-beta.utr=Unique Taxpayer Reference (UTR) number
-sdil.register-for-beta.phone=Telephone number
-sdil.beta.register=Send
-sdil.register-for-beta.p1=We’ve reached the maximum number of businesses that can sign up to register early. However, \
-if you leave your email address we’ll contact you if any more spaces become available.
-
-sdil.beta-registration-confirmed.title=Thank you
-sdil.beta-registration-confirmed.p1=We’ll contact you if more spaces become available.
-error.businessName.required=Enter a business name
-
 #Variations retrieved summary
 sdil.variation.heading=Change your registration details
 sdil.variation.heading.confirm=Confirm your registration details
 sdil.variation.submit.help=Your changes will not be submitted until you have confirmed and sent them
 
-
 #Update business details
 sdil.variation.tradingName=Trading name
 sdil.variation.address.heading=Business address
 sdil.variations.continue=Continue
+sdil.businessAddress.line1.label=Address line 1
+sdil.businessAddress.line2.label=Address line 2
+sdil.businessAddress.line3.label=Address line 3
+sdil.businessAddress.line4.label=Address line 4
+sdil.businessAddress.postcode.label=Postcode
 
 #update actor status
 sdil.variation.actor-status=Current status
@@ -428,9 +429,6 @@ you own or have the rights to manufacture?
 sdil.variation.package-own-vol=How many litres of liable drink will you package in the UK for the brands you own or \
 have the rights to manufacture, in the next 12 months?
 #Update business details
-sdil.variation.tradingName=Trading name
-sdil.variation.address.heading=Business address
-sdil.variations.continue=Continue
 sdil.variations.submit=Confirm and send
 
 #variations summary page
@@ -445,7 +443,7 @@ sdil.variations.contact-details.change=You have changed your contact details
 sdil.variations.deregister=Your company needs to deregister
 #Update warehouse sites
 sdil.variation.add-link=Add new
-sdil.tradingName=Trading name (optional)
+sdil.tradingName.label=Trading name (optional)
 
 sdil.variation.copack-for-others-vol=How many litres do you contract pack for others?
 sdil.variation.imports-vol=How many litres do you import?
