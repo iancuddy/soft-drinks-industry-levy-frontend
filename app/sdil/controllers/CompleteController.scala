@@ -21,6 +21,7 @@ import java.time.format.DateTimeFormatter
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc._
 import sdil.config.AppConfig
+import sdil.connectors.SoftDrinksIndustryLevyConnector
 import sdil.models.SubmissionData
 import uk.gov.hmrc.http.cache.client.SessionCache
 import uk.gov.hmrc.play.bootstrap.controller.FrontendController
@@ -34,7 +35,7 @@ class CompleteController(val messagesApi: MessagesApi,
 
   def show(): Action[AnyContent] = Action.async { implicit request =>
     keystore.fetchAndGetEntry[SubmissionData]("submissionData") map {
-      case Some(SubmissionData(e, ts, iv)) => Ok(register.complete(e, ts.format(dateFormatter), ts.format(timeFormatter), iv))
+      case Some(SubmissionData(e, ts, iv)) => Ok(register.complete(e.contact.email, ts.format(dateFormatter), ts.format(timeFormatter), iv))
       case None => BadRequest(errorHandler.badRequestTemplate)
     }
   }

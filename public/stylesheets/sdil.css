@@ -12,6 +12,15 @@ body {
     padding-right: 0;
 }
 
+.print {
+    display: none;
+}
+
+@media print {
+    .print {
+        display:block;
+    }
+}
 
 @media (min-width: 641px) {
 

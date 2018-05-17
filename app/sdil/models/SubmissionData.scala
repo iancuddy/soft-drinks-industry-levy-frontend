@@ -19,8 +19,9 @@ package sdil.models
 import java.time.LocalDateTime
 
 import play.api.libs.json.{Format, Json}
+import sdil.models.backend.Subscription
 
-case class SubmissionData(email: String, submissionDate: LocalDateTime, isVoluntary: Boolean)
+case class SubmissionData(subscription: Subscription, submissionDate: LocalDateTime, isVoluntary: Boolean)
 
 object SubmissionData {
   implicit val format: Format[SubmissionData] = Json.format[SubmissionData]

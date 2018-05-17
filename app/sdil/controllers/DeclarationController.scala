@@ -50,7 +50,7 @@ class DeclarationController(val messagesApi: MessagesApi,
         _ <- sdilConnector.submit(s, request.formData.rosmData.safeId)
         _ <- keystore.cache(
           "submissionData",
-          SubmissionData(s.contact.email, LocalDateTime.now(ZoneId.of("Europe/London")), request.formData.isVoluntary)
+          SubmissionData(s, LocalDateTime.now(ZoneId.of("Europe/London")), request.formData.isVoluntary)
         )
         _ <- cache.clear(request.internalId)
       } yield {
