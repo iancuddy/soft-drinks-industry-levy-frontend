@@ -20,7 +20,8 @@
 @import java.time.format.DateTimeFormatter
 @import views.html.softdrinksindustrylevy.helpers._
 
-@(email: String, submissionDate: String, submissionTime: String, isVoluntary: Boolean, formData: RegistrationFormData)(implicit messages: Messages, request: Request[_], config: AppConfig)
+@import sdil.models.backend.Subscription
+@(email: String, submissionDate: String, submissionTime: String, isVoluntary: Boolean, subscription: Subscription)(implicit messages: Messages, request: Request[_], config: AppConfig)
 
 @views.html.main_template(title = Messages("sdil.complete.title")) {
 
@@ -30,15 +31,15 @@
         <p class="font-large">@Messages("sdil.complete.subheading")</p>
     </div>
 
-    <p><a href="javascript:window.print('declaration.scala.html')" class="print-link">@Messages("sdil.common.print")</a></p>
+    <p><a href='javascript:window.print("declaration.scala.html")' class="print-link">@Messages("sdil.common.print")</a></p>
     <p>@Messages("sdil.complete.p1", submissionDate, submissionTime.replaceAll(" (.)M", "$1m").toLowerCase)</p>
 
     <h2 class="heading-medium">@Messages("sdil.complete.what-happens.title")</h2>
 
     <p>@Messages("sdil.complete.what-happens.p1", email)</p>
     <p>@Messages("sdil.complete.what-happens.p2")</p>
-
 <div class="print">
+   @*
     @declaration_table("declaration","liable-activity") {
         @formData.producer.map { producer =>
             @declaration_details_table_row(
@@ -161,7 +162,7 @@
             @declaration_details_table_row("declaration", "email",
                 Some(sdil.controllers.routes.ContactDetailsController.show()), details.email)
         }
-    }
+    } *@
 </div>
 
     @*

@@ -20,6 +20,7 @@ import java.time.format.DateTimeFormatter
 
 import play.api.i18n.{I18nSupport, MessagesApi}
 import play.api.mvc._
+import sdil.actions.FormAction
 import sdil.config.AppConfig
 import sdil.connectors.SoftDrinksIndustryLevyConnector
 import sdil.models.SubmissionData
@@ -30,12 +31,13 @@ import views.html.softdrinksindustrylevy._
 
 class CompleteController(val messagesApi: MessagesApi,
                          keystore: SessionCache,
-                         errorHandler: FrontendErrorHandler)
+                         errorHandler: FrontendErrorHandler,
+                         formAction: FormAction)
                         (implicit config: AppConfig) extends FrontendController with I18nSupport {
 
   def show(): Action[AnyContent] = Action.async { implicit request =>
     keystore.fetchAndGetEntry[SubmissionData]("submissionData") map {
-      case Some(SubmissionData(e, ts, iv)) => Ok(register.complete(e.contact.email, ts.format(dateFormatter), ts.format(timeFormatter), iv))
+      case Some(SubmissionData(e, ts, iv)) => Ok(register.complete(e.contact.email, ts.format(dateFormatter), ts.format(timeFormatter), iv, e))
       case None => BadRequest(errorHandler.badRequestTemplate)
     }
   }
