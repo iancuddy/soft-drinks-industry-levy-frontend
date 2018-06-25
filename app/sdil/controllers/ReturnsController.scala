@@ -40,6 +40,7 @@ import ltbs.play.scaffold.SdilComponents.{litreageForm => _, _}
 import scala.concurrent.ExecutionContext
 import play.api.libs.json._
 import play.api.libs.functional.syntax._
+import uk.gov.hmrc.domain.Modulus23Check
 
 class ReturnsController (
   val messagesApi: MessagesApi,
@@ -49,7 +50,7 @@ class ReturnsController (
 )(implicit
   val config: AppConfig,
   val ec: ExecutionContext
-) extends SdilWMController with FrontendController {
+) extends SdilWMController with FrontendController with Modulus23Check {
 
   implicit val litreageForm = new FormHtml[(Long,Long)] {
     import play.api.data.Forms._
@@ -81,7 +82,8 @@ class ReturnsController (
   implicit val smallProducer: Mapping[SmallProducer] = mapping(
     "alias" -> optional(text),
     "sdilRef" -> nonEmptyText
-      .verifying("error.sdilref.invalid", _.matches("^X[A-Z]SDIL000[0-9]{6}$")),
+      .verifying("error.sdilref.invalid", _.matches("^X[A-Z]SDIL000[0-9]{6}$"))
+      .verifying("error.sdilref.invalid", isCheckCorrect(_, 1)),
     "lower"   -> litreage,
     "higher"  -> litreage
   ){

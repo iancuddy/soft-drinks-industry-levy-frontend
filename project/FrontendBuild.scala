@@ -58,6 +58,7 @@ object FrontendBuild extends Build {
         "uk.gov.hmrc" %% "govuk-template" % "5.17.0",
         "uk.gov.hmrc" %% "play-ui" % "7.13.0",
         "uk.gov.hmrc" %% "play-partials" % "6.1.0",
+        "uk.gov.hmrc" %% "domain" % "4.1.0",
         "com.typesafe.play" %% "play-json" % "2.5.18",
         "org.scalactic" %% "scalactic" % "3.0.4",
         "uk.gov.hmrc" %% "auth-client" % "2.5.0",
