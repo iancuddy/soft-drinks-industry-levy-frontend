@@ -753,7 +753,9 @@ check-your-answers.submit-paragraph=By submitting this notification you are conf
 
 return-sent.title=Complete
 return-sent.subheading=We’ve received your return
+return-sent.your.updates=Your return for {0} were sent on {1} at {2}.
 return-sent.returnsDoneMessage=Your return for {0} to {1} {2} for {3} was sent at {4} on {5}.
+return-sent.returnsDoneMessage.q1=Your return for April to June {0} for {1} was sent at {2} on {3}.
 return-sent.paymentsBlurb.payby=You need to pay by {0}.
 return-sent.paymentsBlurb.payusing=You can pay by Bacs or CHAPS using:
 return-sent.paymentsBlurb.payDetails.1=sort code: 20-05-17

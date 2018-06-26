@@ -16,6 +16,8 @@
 
 package sdil.controllers
 
+import java.time.LocalDate
+
 import cats.implicits._
 import ltbs.play.scaffold._
 import ltbs.play.scaffold.webmonad._
@@ -40,6 +42,7 @@ import ltbs.play.scaffold.SdilComponents.{litreageForm => _, _}
 import scala.concurrent.ExecutionContext
 import play.api.libs.json._
 import play.api.libs.functional.syntax._
+import sdil.models.retrieved.RetrievedSubscription
 
 class ReturnsController (
   val messagesApi: MessagesApi,
@@ -129,12 +132,20 @@ class ReturnsController (
   ).mapN(SdilReturn.apply)
 
   private def confirmationPage(key: String)(implicit messages: Messages): WebMonad[Result] = {
-    val now = java.time.LocalDate.now
+    import sdil.models.retrieved.RetrievedSubscription
 
-    val returnDate = messages("return-sent.returnsDoneMessage", "April", "June", "2018", "ABC Drinks", "12:12", "12th June")
-    val whatHappensNext = uniform.fragments.returnsPaymentsBlurb(now)(messages).some
-    journeyEnd(key, now, Html(returnDate).some, whatHappensNext)
-  }
+    val now = java.time.LocalDate.now
+    val timeNow = java.time.LocalTime.now
+//TODO fix this when Luke has merged return periods being within the URL
+        def printQuarter =
+          now match {
+            case q1 if now.isAfter(LocalDate.parse("2018-06-01")) && now.isBefore(LocalDate.parse("2018-07-31")) =>
+              messages("return-sent.returnsDoneMessage.q1", now.getYear.toString, "retrievedSubscription.orgName", now, timeNow)
+          }
+
+  val whatHappensNext = uniform.fragments.returnsPaymentsBlurb(now)(messages).some
+  journeyEnd(key, now, Html(printQuarter).some, whatHappensNext)
+}
 
   private val program: WebMonad[Result] = for {
     sdilReturn     <- askReturn
@@ -150,6 +161,6 @@ class ReturnsController (
       throw new NotImplementedError("Returns are not enabled")
 
     val persistence = SessionCachePersistence("returns", keystore)
-    runInner(request)(program)(id)(persistence.dataGet,persistence.dataPut)
+    runInner(request)(program)(id)(persistence.dataGet, persistence.dataPut)
   }
 }

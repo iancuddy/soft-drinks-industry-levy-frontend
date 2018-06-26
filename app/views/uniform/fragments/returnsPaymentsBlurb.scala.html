@@ -14,7 +14,16 @@
  * limitations under the License.
  *@
 
+@import java.time.{LocalDate, LocalTime, ZoneId}
+@import java.time.format.DateTimeFormatter
+@import sdil.models.retrieved.RetrievedSubscription
+
 @(paymentDate: java.time.LocalDate)(implicit messages: Messages)
+
+@*<p>
+  @*Messages(s"return-sent.your.updates", orgName, paymentDate.format("d MMMM yyyy"), LocalTime.now
+         ZoneId.of("Europe/London")).format(DateTimeFormatter.ofPattern("h:mma")).toLowerCase))
+</p>*@
 
 <p>@Messages("return-sent.paymentsBlurb.payby", paymentDate)</p>
 
