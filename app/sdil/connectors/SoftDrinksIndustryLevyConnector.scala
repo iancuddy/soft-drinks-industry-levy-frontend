@@ -59,9 +59,17 @@ class SoftDrinksIndustryLevyConnector(http: HttpClient,
     http.POST[VariationsSubmission, HttpResponse](s"$sdilUrl/submit-variations/sdil/$sdilNumber", variation) map { _ => () }
   }
 
-  object returns { 
+  object returns {
+    import play.api.libs.functional.syntax._
+    import play.api.libs.functional.syntax.unlift
+    import play.api.libs.json._
+
+    implicit val longTupleFormatter: Format[(Long, Long)] = (
+      (JsPath \ "lower").format[Long] and
+        (JsPath \ "higher").format[Long]
+    )((a: Long, b: Long) => (a,b), unlift({x: (Long,Long) => Tuple2.unapply(x)}))
+
     implicit val returnPeriodJson = Json.format[ReturnPeriod]
-    import ltbs.play.scaffold.SdilComponents.longTupleFormatter
     implicit val smallProducerJson = Json.format[SmallProducer]    
     implicit val returnJson = Json.format[SdilReturn]
 

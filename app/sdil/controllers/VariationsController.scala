@@ -42,7 +42,7 @@ import uk.gov.hmrc.http.cache.client.{SessionCache, ShortLivedHttpCaching}
 import uk.gov.hmrc.play.bootstrap.controller.FrontendController
 import views.html.uniform
 import ContactDetailsForm.contactDetailsMapping
-
+import scala.pickling.Defaults._
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{ExecutionContext, Future}
 class VariationsController(
@@ -87,12 +87,12 @@ class VariationsController(
       change          <- askContactChangeType
 
       packSites       <- if (change.contains(Sites)) {
-        manyT("packSites", ask(packagingSiteMapping,_)(packagingSiteForm, implicitly), default = data
+        manyT("packSites", ask(packagingSiteMapping,_)(implicitly, implicitly, packagingSiteForm), default = data
           .updatedProductionSites.toList, min = 1) emptyUnless (data.producer.isLarge.contains(true) || data.copackForOthers)
       } else data.updatedProductionSites.pure[WebMonad]
 
       warehouses      <- if (change.contains(Sites)) {
-        manyT("warehouses", ask(warehouseSiteMapping,_)(warehouseSiteForm, implicitly), default = data.updatedWarehouseSites.toList)
+        manyT("warehouses", ask(warehouseSiteMapping,_)(implicitly, implicitly, warehouseSiteForm), default = data.updatedWarehouseSites.toList)
       } else data.updatedWarehouseSites.pure[WebMonad]
 
       contact         <- if (change.contains(ContactPerson)) {
@@ -121,7 +121,7 @@ class VariationsController(
 
     def askPackSites(existingSites: List[Site], packs: Boolean): WebMonad[List[Site]] =
         manyT("packSitesActivity",
-          ask(packagingSiteMapping,_)(packagingSiteForm, implicitly),
+          ask(packagingSiteMapping,_)(implicitly, implicitly, packagingSiteForm),
           default = existingSites,
           min = 1
         ) emptyUnless (packs)
@@ -143,7 +143,7 @@ class VariationsController(
                                      else for {
                                        packSites       <- askPackSites(data.updatedProductionSites.toList, (packLarge.contains(true) && packageOwn.contains(true)) || !copacks.isEmpty)
                                        isVoluntary     =  packLarge.contains(false) && useCopacker.contains(true) && (copacks, imports).isEmpty
-                                       warehouses      <- manyT("warehousesActivity", ask(warehouseSiteMapping,_)(warehouseSiteForm, implicitly), default = data.updatedWarehouseSites.toList) emptyUnless !isVoluntary
+                                       warehouses      <- manyT("warehousesActivity", ask(warehouseSiteMapping,_)(implicitly, implicitly, warehouseSiteForm), default = data.updatedWarehouseSites.toList) emptyUnless !isVoluntary
                                      } yield data.copy (
                                        producer               = Producer(packLarge.isDefined, packLarge),
                                        usesCopacker           = useCopacker.some.flatten,

@@ -21,9 +21,6 @@ import play.api.data.Forms._
 import play.api.data._
 import play.api.data.validation.{Constraint, Invalid, Valid}
 import play.api.i18n.Messages
-import play.api.libs.functional.syntax._
-import play.api.libs.functional.syntax.unlift
-import play.api.libs.json._
 import play.twirl.api.Html
 import sdil.models._
 import sdil.models.backend.{Site, UkAddress}
@@ -92,10 +89,5 @@ object SdilComponents {
       )
     }
   }
-
-  implicit val longTupleFormatter: Format[(Long, Long)] = (
-    (JsPath \ "lower").format[Long] and
-      (JsPath \ "higher").format[Long]
-    )((a: Long, b: Long) => (a,b), unlift({x: (Long,Long) => Tuple2.unapply(x)}))
 
 }

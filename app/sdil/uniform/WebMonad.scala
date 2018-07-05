@@ -17,7 +17,7 @@
 package ltbs.play.scaffold
 
 import java.time.LocalDate
-
+import scala.pickling.Defaults._, scala.pickling.json._
 import cats.data.{EitherT, RWST}
 import cats.implicits._
 import cats.{Monoid, Order}
@@ -32,6 +32,7 @@ import play.twirl.api.Html
 
 import scala.concurrent.{ExecutionContext, Future}
 import scala.language.implicitConversions
+import scala.pickling.{Pickler, Unpickler, Pickle}
 
 
 trait FormHtml[A] {
@@ -52,7 +53,7 @@ package object webmonad {
 
   // State is read once, threaded through the webmonads and the final state is
   // written back at the end of execution
-  type DbState = Map[String, JsValue]
+  type DbState = Map[String, Pickle]
 
   // write out Pages (path state)
   type Path = List[String]
@@ -79,26 +80,26 @@ package object webmonad {
       (none[String], path, db, path.asRight).pure[Future]
     }
 
-  def read[A](key: String)(implicit reads: Reads[A], ec: ExecutionContext): WebMonad[Option[A]] =
+  def read[A: Unpickler](key: String)(implicit ec: ExecutionContext): WebMonad[Option[A]] =
     webMonad { (_, _, path, db) =>
-      (none[String], path, db, db.get(key).map {
-        _.as[A]
+      (none[String], path, db, db.get(key).map { a =>
+        a.unpickle[A]
       }.asRight[Result]).pure[Future]
     }
 
-  def write[A](key: String, value: A)(implicit writes: Writes[A], ec: ExecutionContext): WebMonad[Unit] =
+  def write[A: Pickler](key: String, value: A)(implicit ec: ExecutionContext): WebMonad[Unit] =
     webMonad { (_, _, path, db) =>
-      (none[String], path, db + (key -> Json.toJson(value)), ().asRight[Result]).pure[Future]
+      (none[String], path, db + (key -> value.pickle), ().asRight[Result]).pure[Future]
     }
 
-  def update[A](key: String)(
+  def update[A: Pickler: Unpickler](key: String)(
     f: Option[A] => Option[A]
-  )(implicit format: Format[A], ec: ExecutionContext): WebMonad[Unit] = webMonad { (_, _, path, db) =>
-    f(db.get(key).map {
-      _.as[A]
+  )(implicit ec: ExecutionContext): WebMonad[Unit] = webMonad { (_, _, path, db) =>
+    f(db.get(key).map { v =>
+      v.unpickle[A]
     }) match {
       case Some(x) =>
-        (none[String], path, db + (key -> Json.toJson(x)), ().asRight[Result]).pure[Future]
+        (none[String], path, db + (key -> x.pickle), ().asRight[Result]).pure[Future]
       case None =>
         (none[String], path, db - key, ().asRight[Result]).pure[Future]
     }
@@ -111,44 +112,44 @@ package object webmonad {
 
   def clear(implicit ec: ExecutionContext): WebMonad[Unit] =
     webMonad { (_, _, path, db) =>
-      (none[String], path, Map.empty[String,JsValue], ().asRight[Result]).pure[Future]
+      (none[String], path, Map.empty[String,Pickle], ().asRight[Result]).pure[Future]
     }
 
 
-  def cachedFuture[A]
+  def cachedFuture[A: Pickler: Unpickler]
     (cacheId: String)
     (f: => Future[A])
-    (implicit format: Format[A], ec: ExecutionContext): WebMonad[A] =
+    (implicit ec: ExecutionContext): WebMonad[A] =
     webMonad { (id, request, path, db) =>
       val cached = for {
         record <- db.get(cacheId)
       } yield
-          (none[String], path, db, record.as[A].asRight[Result])
+          (none[String], path, db, record.unpickle[A].asRight[Result])
             .pure[Future]
 
       cached.getOrElse {
         f.map { result =>
-          val newDb = db + (cacheId -> Json.toJson(result))
+          val newDb = db + (cacheId -> result.pickle)
           (none[String], path, newDb, result.asRight[Result])
         }
       }
     }  
 
-  def cachedFutureOpt[A]
+  def cachedFutureOpt[A: Pickler: Unpickler]
     (cacheId: String)
     (f: => Future[Option[A]])
-    (implicit format: Format[A], ec: ExecutionContext): WebMonad[Option[A]] =
+    (implicit ec: ExecutionContext): WebMonad[Option[A]] =
     webMonad { (id, request, path, db) =>
       val cached = for {
         record <- db.get(cacheId)
       } yield
-          (none[String], path, db, record.as[A].some.asRight[Result])
+          (none[String], path, db, record.unpickle[A].some.asRight[Result])
             .pure[Future]
 
       cached.getOrElse {
         f.map { result =>
           val newDb = result.map { r => 
-            db + (cacheId -> Json.toJson(r))
+            db + (cacheId -> r.pickle)
           } getOrElse db
           (none[String], path, newDb, result.asRight[Result])
         }
@@ -195,15 +196,14 @@ package webmonad {
       (none[String], path, db, Redirect(s"./$target").asLeft[Unit]).pure[Future]
     }
 
-    def many[A](
+    def many[A: Unpickler](
       id: String,
       min: Int = 0,
       max: Int = 1000,
       default: List[A] = List.empty[A],
       deleteConfirmation: A => WebMonad[Boolean] = {_: A => true.pure[WebMonad]}
     )(listingPage: (String, Int, Int, List[A]) => WebMonad[Control])
-      (wm: String => WebMonad[A])
-      (implicit format: Format[A]): WebMonad[List[A]] =
+      (wm: String => WebMonad[A]): WebMonad[List[A]] =
     {
       val innerId = s"add-$id"
       val innerPage: WebMonad[A] = wm(innerId)
@@ -244,29 +244,20 @@ package webmonad {
     }
 
     def runInner(request: Request[AnyContent])(program: WebMonad[Result])(id: String)(
-      load: String => Future[Map[String, JsValue]],
-      save: (String, Map[String, JsValue]) => Future[Unit]
+      load: String => Future[Map[String, Pickle]],
+      save: (String, Map[String, Pickle]) => Future[Unit]
     ): Future[Result] = {
         request.session.get("uuid").fold {
           Redirect(id).withSession {
             request.session + ("uuid" -> java.util.UUID.randomUUID.toString)
           }.pure[Future]
         } { sessionUUID =>
-          load(sessionUUID).flatMap { initialData =>
-
-            def parse(in: String): Map[String, JsValue] =
-              Json.parse(in) match {
-                case JsObject(v) => v.toList.toMap
-                case _ => throw new IllegalArgumentException
-              }
-
-            val data = request.getQueryString("restoreState")
-              .fold(initialData)(parse)
+          load(sessionUUID).flatMap { data =>
 
             program.value
               .run((id, request), (List.empty[String], data))
               .flatMap { case (_, (path, state), a) => {
-                if (state != initialData) {
+                if (state != data) {
                   save(sessionUUID, state)
                 }
                 else
@@ -280,17 +271,17 @@ package webmonad {
     }
 
     def run(program: WebMonad[Result])(id: String)(
-      load: String => Future[Map[String, JsValue]],
-      save: (String, Map[String, JsValue]) => Future[Unit]
+      load: String => Future[Map[String, Pickle]],
+      save: (String, Map[String, Pickle]) => Future[Unit]
     ) = Action.async {
       request => runInner(request)(program)(id)(load, save)
     }
 
-    def formPage[A, B: Writeable](id: String)(
+    def formPage[A: Pickler: Unpickler, B: Writeable](id: String)(
       mapping: Mapping[A], default: Option[A] = None
     )(
       render: (List[String], Form[A], Request[AnyContent]) => B
-    )(implicit f: Format[A]): WebMonad[A] = {
+    ): WebMonad[A] = {
       val form = Form(single(id -> mapping))
       val formWithDefault =
         default.map{form.fill}.getOrElse(form)
@@ -317,14 +308,14 @@ package webmonad {
                 (
                   id.pure[List],
                   (path, st),
-                  Ok(render(path, form.fill(json.as[A]), implicitly)).asLeft[A]
+                  Ok(render(path, form.fill(json.unpickle[A]), implicitly)).asLeft[A]
                 )
               // something in database, not step in URI, pass through
               case ("get", Some(json), _) =>
                 (
                   id.pure[List],
                   (id :: path, st),
-                  json.as[A].asRight[Result]
+                  json.unpickle[A].asRight[Result]
                 )
               case ("post", _, `id`) => form.bindFromRequest.fold(
                 formWithErrors => {
@@ -337,7 +328,7 @@ package webmonad {
                 formData => {
                   (
                     id.pure[List],
-                    (id :: path, st + (id -> Json.toJson(formData))),
+                    (id :: path, st + (id -> formData.pickle)),
                     formData.asRight[Result]
                   )
                 }
@@ -354,7 +345,7 @@ package webmonad {
                 (
                   id.pure[List],
                   (id :: path, st),
-                  json.as[A].asRight[Result]
+                  json.unpickle[A].asRight[Result]
                 )
               case ("post", _, _) | ("get", _, _) =>
                 (

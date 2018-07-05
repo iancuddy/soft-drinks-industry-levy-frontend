@@ -23,6 +23,8 @@ import uk.gov.hmrc.http.cache.client.ShortLivedHttpCaching
 
 import scala.collection.mutable.{Map => MMap}
 import scala.concurrent._
+import scala.pickling._
+import scala.pickling.json._
 
 /** WebMonads read in all their data at the start of the interaction with the
   * user and write it all out again at the end.
@@ -34,8 +36,9 @@ import scala.concurrent._
   * to change during development and it's usually fine to just ask the user again.
   */
 trait Persistence {
-  def dataGet(session: String): Future[Map[String, JsValue]]
-  def dataPut(session: String, dataIn: Map[String, JsValue]): Unit
+  lazy val log = play.api.Logger(this.getClass)
+  def dataGet(session: String): Future[Map[String, Pickle]]
+  def dataPut(session: String, dataIn: Map[String, Pickle]): Future[Unit]
 }
 
 /** A non-presistent persistence engine - fast to develop in (store gets purged on
@@ -44,13 +47,15 @@ trait Persistence {
   */
 class JunkPersistence(implicit val ec: ExecutionContext) extends Persistence {
 
-  private val data = MMap.empty[String,Map[String,JsValue]]
+  private val data = MMap.empty[String,Map[String,Pickle]]
 
-  def dataGet(session: String): Future[Map[String, JsValue]] =
-    data.getOrElse(session, Map.empty[String,JsValue]).pure[Future]
+  def dataGet(session: String): Future[Map[String, Pickle]] = {
 
-  def dataPut(session: String, dataIn: Map[String, JsValue]): Unit =
-    data(session) = dataIn
+    data.getOrElse(session, Map.empty[String,Pickle])
+  }.pure[Future]
+
+  def dataPut(session: String, dataIn: Map[String, Pickle]): Future[Unit] =
+  {data(session) = dataIn}.pure[Future]
 }
 
 case class SessionCachePersistence(
@@ -60,14 +65,21 @@ case class SessionCachePersistence(
     ec: ExecutionContext,
   hc: HeaderCarrier
 ) extends Persistence {
-  def dataGet(session: String): Future[Map[String, JsValue]] =
-    keystore.fetchAndGetEntry[Map[String, JsValue]](journeyName).map{
-      _.getOrElse(Map.empty)
+  def dataGet(session: String): Future[Map[String, Pickle]] = {
+    val decoded = keystore.fetchAndGetEntry[Map[String, String]](journeyName).map{
+      _.getOrElse(Map.empty).mapValues{JSONPickle}
     }
+    log.info(s"Decoded: $decoded")
+    decoded
+  }
 
-  def dataPut(session: String, dataIn: Map[String, JsValue]): Unit =
-    keystore.cache(journeyName, dataIn)
-
+  def dataPut(session: String, dataIn: Map[String, Pickle]): Future[Unit] = {
+    val encoded = dataIn.mapValues { _.value.toString }
+    keystore.cache(journeyName, encoded).map{_ =>
+      log.info(s"Encoded: $encoded")
+      ()
+    }
+  }
 }
 
 case class SaveForLaterPersistence(
@@ -78,13 +90,22 @@ case class SaveForLaterPersistence(
     ec: ExecutionContext,
   hc: HeaderCarrier
 ) extends Persistence {
-  def dataGet(session: String): Future[Map[String, JsValue]] = {
-    shortLiveCache.fetchAndGetEntry[Map[String, JsValue]](userId, journeyName).map{
-      _.getOrElse(Map.empty)
+
+  def dataGet(session: String): Future[Map[String, Pickle]] = {
+    val decoded = shortLiveCache.fetchAndGetEntry[Map[String, String]](userId, journeyName).map{
+      _.getOrElse(Map.empty).mapValues{JSONPickle}
+    }
+    log.info(s"Decoded: $decoded")
+    decoded
+  }
+
+  def dataPut(session: String, dataIn: Map[String, Pickle]): Future[Unit] = {
+    val encoded = dataIn.mapValues { _.value.toString }
+    shortLiveCache.cache(userId, journeyName, encoded).map{_ =>
+      log.info(s"Encoded: $encoded")
+      ()
     }
   }
 
-  def dataPut(session: String, dataIn: Map[String, JsValue]): Unit =
-    shortLiveCache.cache(userId, journeyName, dataIn)
 
 }

@@ -33,13 +33,14 @@ import play.api.libs.functional.syntax._
 import play.api.libs.json._
 import play.api.mvc.{AnyContent, Request, Result}
 import play.twirl.api.Html
+import scala.pickling.{Pickler, Unpickler}
 import sdil.config.AppConfig
 import sdil.forms.FormHelpers
 import sdil.models._
 import sdil.models.backend._
 import uk.gov.hmrc.play.bootstrap.controller.FrontendController
 import views.html.uniform
-
+import scala.pickling.Defaults._
 import scala.concurrent._
 import scala.util.Try
 import scala.collection.mutable.{Map => MMap}
@@ -105,19 +106,7 @@ trait SdilWMController extends WebMonadController
     def nonEmpty(implicit m: Monoid[A], eq: Eq[A]): Mapping[A] = nonEmpty("error.empty")
   }
 
-
-  implicit def optFormatter[A](implicit innerFormatter: Format[A]): Format[Option[A]] =
-    new Format[Option[A]] {
-      def reads(json: JsValue): JsResult[Option[A]] = json match {
-        case JsNull => JsSuccess(none[A])
-        case a      => innerFormatter.reads(a).map{_.some}
-      }
-      def writes(o: Option[A]): JsValue =
-        o.map{innerFormatter.writes}.getOrElse(JsNull)
-    }
-
-
-  def askOption[T](innerMapping: Mapping[T], key: String, default: Option[Option[T]] = None)(implicit htmlForm: FormHtml[T], fmt: Format[T]): WebMonad[Option[T]] = {
+  def askOption[T: Pickler](innerMapping: Mapping[T], key: String, default: Option[Option[T]] = None)(implicit htmlForm: FormHtml[T]): WebMonad[Option[T]] = {
     import uk.gov.voa.play.form.ConditionalMappings.mandatoryIfTrue
 
     val outerMapping: Mapping[Option[T]] = mapping(
@@ -156,12 +145,11 @@ trait SdilWMController extends WebMonadController
     }
   }
 
-  def askEmptyOption[T](
+  def askEmptyOption[T: Pickler](
     innerMapping: Mapping[T],
     key: String,
     default: Option[T] = None
   )(implicit htmlForm: FormHtml[T],
-    fmt: Format[T],
     mon: Monoid[T]
   ): WebMonad[T] = {
     val monDefault: Option[Option[T]] = default.map{_.some.filter{_ != mon.empty}}
@@ -169,24 +157,17 @@ trait SdilWMController extends WebMonadController
       .map{_.getOrElse(mon.empty)}
   }
 
-  def ask[T](mapping: Mapping[T], key: String, default: Option[T] = None)(implicit htmlForm: FormHtml[T], fmt: Format[T]): WebMonad[T] =
+  def ask[T: Pickler: Unpickler](mapping: Mapping[T], key: String, default: Option[T] = None)(implicit htmlForm: FormHtml[T]): WebMonad[T] =
     formPage(key)(mapping, default) { (path, form, r) =>
       implicit val request: Request[AnyContent] = r
       uniform.ask(key, form, htmlForm.asHtmlForm(key, form), path)
     }
 
-  def ask[T](mapping: Mapping[T], key: String)(implicit htmlForm: FormHtml[T], fmt: Format[T]): WebMonad[T] =
+  def ask[T: Pickler: Unpickler](mapping: Mapping[T], key: String)(implicit htmlForm: FormHtml[T]): WebMonad[T] =
     ask(mapping, key, None)
 
-  def ask[T](mapping: Mapping[T], key: String, default: T)(implicit htmlForm: FormHtml[T], fmt: Format[T]): WebMonad[T] =
+  def ask[T: Pickler: Unpickler](mapping: Mapping[T], key: String, default: T)(implicit htmlForm: FormHtml[T]): WebMonad[T] =
     ask(mapping, key, default.some)
-
-  // Because I decided earlier on to make everything based off of JSON
-  // I have to write silly things like this. TODO
-  implicit val formatUnit: Format[Unit] = new Format[Unit] {
-    def writes(u: Unit) = JsNull
-    def reads(v: JsValue) = JsSuccess(())
-  }
 
   protected def tell[A: HtmlShow](
     id: String,
@@ -206,13 +187,13 @@ trait SdilWMController extends WebMonadController
     }
   }
 
-  protected def askList[A](
+  protected def askList[A: Pickler: Unpickler](
     innerMapping: Mapping[A],
     id: String,
     min: Int = 0,
     max: Int = 100,
     default: List[A] = List.empty[A]
-  )(implicit hs: HtmlShow[A], htmlForm: FormHtml[A], format: Format[A]): WebMonad[List[A]] =
+  )(implicit hs: HtmlShow[A], htmlForm: FormHtml[A]): WebMonad[List[A]] =
     manyT[A](id, ask(innerMapping, _), min, max, default)
 
   protected def askBigText(
@@ -265,13 +246,13 @@ trait SdilWMController extends WebMonadController
     }
 
 
-  protected def manyT[A](
+  protected def manyT[A: Unpickler](
     id: String,
     wm: String => WebMonad[A],
     min: Int = 0,
     max: Int = 100,
     default: List[A] = List.empty[A]
-  )(implicit hs: HtmlShow[A], format: Format[A]): WebMonad[List[A]] = {
+  )(implicit hs: HtmlShow[A]): WebMonad[List[A]] = {
     def outf(x: String): Control = x match {
       case "Add" => Add
       case "Done" => Done
@@ -293,6 +274,7 @@ trait SdilWMController extends WebMonadController
         uniform.many(id, b, items.map{_.showHtml}, path, min)
       }.imap(outf)(inf)
     }(wm)
+
   }
 
 }
