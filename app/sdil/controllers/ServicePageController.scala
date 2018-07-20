@@ -45,7 +45,8 @@ class ServicePageController(val messagesApi: MessagesApi,
     val ret = for {
       subscription  <- OptionT(sdilConnector.retrieveSubscription(sdilRef))
       returnPeriods <- if (config.returnsEnabled)
-                         OptionT(sdilConnector.returns.pending(subscription.utr).map(_.some))
+//                         OptionT(sdilConnector.returns.pending(subscription.utr).map(_.some))
+                         OptionT(sdilConnector.returns.get(subscription.utr, ReturnPeriod.apply(2018, 1)))
                        else
                          Nil.pure[FutOpt]
       balance       <- if (config.balanceEnabled)
