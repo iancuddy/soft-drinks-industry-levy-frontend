@@ -23,7 +23,7 @@ import ltbs.play.scaffold.GdsComponents._
 import ltbs.play.scaffold.SdilComponents.OrganisationType.{partnership, soleTrader}
 import ltbs.play.scaffold.SdilComponents.ProducerType.{Large, Small}
 import ltbs.play.scaffold.SdilComponents._
-import ltbs.play.scaffold.webmonad._
+import uk.gov.hmrc.uniform.webmonad._
 import play.api.i18n.{Messages, MessagesApi}
 import play.api.mvc.{Action, AnyContent, Result}
 import sdil.actions.{AuthorisedAction, AuthorisedRequest, RegisteredAction}
@@ -90,9 +90,9 @@ class RegistrationController(
 
     for {
       orgType        <- askOneOf("organisation-type", organisationTypes)
-      noPartners     =  uniform.fragments.partnerships
+      noPartners     =  uniform.fragments.partnerships()
       _              <- if (orgType == partnership) {
-                          end("partners",noPartners)
+                          end("partnerships", noPartners)
                         } else (()).pure[WebMonad]
       packLarge       <- askOneOf("producer", ProducerType.values.toList) map {
                           case Large => Some(true)
@@ -109,11 +109,11 @@ class RegistrationController(
       _              <- if (noUkActivity && smallProducerWithNoCopacker) {
                           end("do-not-register",noReg)
                         } else (()).pure[WebMonad]
-      regDate        <- askRegDate
-      packSites      <- askPackSites(
-                          List.empty[Site]) emptyUnless
-                          (packLarge.contains(true) && packageOwn.contains(true)) || !copacks.isEmpty
       isVoluntary     =  packLarge.contains(false) && useCopacker.contains(true) && (copacks, imports).isEmpty
+      regDate        <- askRegDate when (!isVoluntary)
+      packSites      <- askPackSites(
+          List.empty[Site]) emptyUnless
+      (packLarge.contains(true) && packageOwn.flatten.nonEmpty) || !copacks.isEmpty
       warehouses      <- askWarehouses emptyUnless !isVoluntary
       contactDetails  <- ask(contactDetailsMapping, "contact-details")
       activity        =  Activity(
@@ -135,7 +135,8 @@ class RegistrationController(
                            orgType.toString,
                            UkAddress.fromAddress(fd.rosmData.address),
                            activity,
-                           regDate,
+                           //TODO in refactor make start date non-optional & default to now.
+                           regDate.getOrElse(LocalDate.now),
                            packSites,
                            warehouses,
                            contact
@@ -153,7 +154,7 @@ class RegistrationController(
                            packSites,
                            contactDetails
                          )(request, implicitly, implicitly)
-      _               <- tell("registerDeclaration", declaration)
+      _               <- tell("declaration", declaration)
       _               <- execute(sdilConnector.submit(Subscription.desify(subscription), fd.rosmData.safeId))
       _               <- execute(cache.clear(request.internalId))
       complete        =  uniform.fragments.registrationComplete(contact.email)
