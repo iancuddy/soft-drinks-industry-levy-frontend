@@ -49,6 +49,10 @@ class ServicePageController(val messagesApi: MessagesApi,
                          OptionT(sdilConnector.returns.get(subscription.utr, ReturnPeriod.apply(2018, 1)))
                        else
                          Nil.pure[FutOpt]
+      returnPeriodCompleted <- if (config.returnsEnabled)
+                                  OptionT(sdilConnector.returns.get(subscription.utr, ReturnPeriod(LocalDate.now())))
+                                else
+                                  Nil.pure[FutOpt]
       balance       <- if (config.balanceEnabled)
                          OptionT(sdilConnector.balance(sdilRef).map(_.some))
                        else BigDecimal(0).pure[FutOpt]
