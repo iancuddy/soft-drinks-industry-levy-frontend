@@ -50,13 +50,22 @@ class ServicePageController(val messagesApi: MessagesApi,
                         } else {
                           Nil.pure[FutOpt]
                         }
-      completedReturnPeriod <- OptionT(sdilConnector.returns.get(subscription.utr, ReturnPeriod(LocalDate.now())))
+      completedReturnPeriod <-if (config.returnsEnabled)
+                                OptionT(sdilConnector.returns.get(subscription.utr, ReturnPeriod(LocalDate.now())))
+                              else
+                                Nil.pure[FutOpt]
+      foo = completedReturnPeriod match {
+        case Some(x:SdilReturn) => {
+          Some(x)
+        }
+        case _ => None
+      }
       balance       <- if (config.balanceEnabled)
                          OptionT(sdilConnector.balance(sdilRef).map(_.some))
                        else BigDecimal(0).pure[FutOpt]
     } yield {
       val addr = Address.fromUkAddress(subscription.address)
-      Ok(service_page(addr, request.sdilEnrolment.value, subscription, returnPeriods, completedReturnPeriod, balance))
+      Ok(service_page(addr, request.sdilEnrolment.value, subscription, returnPeriods, foo, balance))
     }
 
     ret.getOrElse { NotFound(errorHandler.notFoundTemplate) }

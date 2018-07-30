@@ -24,7 +24,7 @@
 @import uk.gov.hmrc.play.views.html.helpers._
 @import java.time.format.DateTimeFormatter.ofPattern
 
-@(address: Address, sdilReference: String, subscription: RetrievedSubscription, periodsDue: List[ReturnPeriod] = Nil, completedReturn: SdilReturn, balance: BigDecimal)(implicit request: Request[_], messages: Messages, config: AppConfig)
+@(address: Address, sdilReference: String, subscription: RetrievedSubscription, periodsDue: List[ReturnPeriod] = Nil, completedReturn: Option[SdilReturn], balance: BigDecimal)(implicit request: Request[_], messages: Messages, config: AppConfig)
 
 
 @main_template(Messages("sdil.registered.title"), noArticle = true) {
@@ -45,6 +45,9 @@
                     </p>
                 </div>
 	    } else {
+                @if(completedReturn.nonEmpty) {
+                    <h1>NA NA NA NA NA NA NA NABATMAN RETURNS</h1>
+                }
 	      @for(period <- periodsDue) { 
 	      <div class="notice">
               <i class="icon icon-important" style="top: 43%">
