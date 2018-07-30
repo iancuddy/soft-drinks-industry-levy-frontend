@@ -44,14 +44,13 @@ class ServicePageController(val messagesApi: MessagesApi,
     val sdilRef = request.sdilEnrolment.value
     val ret = for {
       subscription  <- OptionT(sdilConnector.retrieveSubscription(sdilRef))
-      returnPeriods <- if (config.returnsEnabled)
-                         OptionT(sdilConnector.returns.pending(subscription.utr).map(_.some))
-                       else
-                         Nil.pure[FutOpt]
-      completedReturnPeriod <- if (config.returnsEnabled)
-                                  OptionT(sdilConnector.returns.get(subscription.utr, ReturnPeriod(LocalDate.now())))
-                                else
-                                  Nil.pure[FutOpt]
+      returnPeriods <- if (config.returnsEnabled) {
+                          val x = sdilConnector.returns.pending(subscription.utr).map(_.some)
+                          OptionT(x)
+                        } else {
+                          Nil.pure[FutOpt]
+                        }
+      completedReturnPeriod <- OptionT(sdilConnector.returns.get(subscription.utr, ReturnPeriod(LocalDate.now())))
       balance       <- if (config.balanceEnabled)
                          OptionT(sdilConnector.balance(sdilRef).map(_.some))
                        else BigDecimal(0).pure[FutOpt]
