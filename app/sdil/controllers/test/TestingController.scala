@@ -52,4 +52,8 @@ class TestingController(testConnector: TestConnector) extends FrontendController
     }
   }
 
+  def deleteAllReturns: Action[AnyContent] = Action.async { implicit request =>
+    ???
+  }
+
 }

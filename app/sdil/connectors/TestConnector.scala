@@ -36,6 +36,9 @@ class TestConnector(http: HttpClient,
 
   override protected def mode = environment.mode
 
+  def deleteAllReturns(implicit hc: HeaderCarrier): Future[HttpResponse] = 
+    http.GET[HttpResponse](s"$testUrl/test-only/delete-all-returns")
+
   def reset(url: String)(implicit hc: HeaderCarrier): Future[HttpResponse] = {
     http.GET[HttpResponse](s"$testUrl/test-only/$url")
   }
